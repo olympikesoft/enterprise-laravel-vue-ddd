@@ -11,7 +11,7 @@ class MakeDonationHttpRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return auth()->check();
     }
 
     /**
@@ -22,7 +22,19 @@ class MakeDonationHttpRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'campaign_id' => 'required|integer|exists:campaigns,id',
+            'amount' => 'required|numeric|min:0.50', // Minimum donation amount
+            'donor_name' => 'required_without:user_id|nullable|string|max:255', // Required if user is not authenticated/provided
+            'message' => 'nullable|string|max:1000',
+            'payment_token' => 'required|string', // Token from payment gateway (e.g., Stripe.js)
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'donor_name.required_without' => 'Your name is required for anonymous donations.',
+            'campaign_id.exists' => 'The selected campaign does not exist.',
         ];
     }
 }

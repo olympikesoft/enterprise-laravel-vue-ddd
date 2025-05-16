@@ -8,6 +8,15 @@ use Illuminate\Http\Resources\Json\ResourceCollection;
 class CampaignCollection extends ResourceCollection
 {
     /**
+     * The resource that this resource collects.
+     *
+     * @var string
+     */
+    public static $wrap = 'data'; // Standard Laravel pagination wrap
+
+    public $collects = CampaignResource::class;
+
+    /**
      * Transform the resource collection into an array.
      *
      * @return array<int|string, mixed>

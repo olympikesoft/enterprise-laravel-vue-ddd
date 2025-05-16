@@ -3,47 +3,39 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\MakeDonationHttpRequest;
+use App\Http\Resources\DonationResource;
+use App\Application\Donation\Command\CreateDonationCommand;
+use App\Application\Donation\Handler\CreateDonationHandler;
+use App\Application\DTO\Donation\MakeDonationDTO;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 
 class DonationController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function store(MakeDonationHttpRequest $request, CreateDonationHandler $handler): JsonResponse
     {
-        //
-    }
+        $validated = $request->validated();
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        $dto = new MakeDonationDTO(
+            campaignId: (int) $validated['campaign_id'],
+            amount: (float) $validated['amount'],
+            userId: Auth::id(), // Can be null if user is not logged in
+            donorName: $validated['donor_name'] ?? (Auth::check() ? Auth::user()->name : null),
+            message: $validated['message'] ?? null,
+            paymentToken: $validated['payment_token']
+        );
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+        $command = new CreateDonationCommand($dto);
+        $donation = $handler->handle($command);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+        if ($donation->payment_status === \App\Infrastructure\Persistence\Models\Donation::PAYMENT_STATUS_FAILED) {
+            return response()->json([
+                'message' => 'Payment failed. Your donation was not processed.',
+                'donation' => new DonationResource($donation) // Show the failed donation attempt
+            ], 422); // Unprocessable Entity
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return response()->json(new DonationResource($donation), 201);
     }
 }
