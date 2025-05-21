@@ -1,26 +1,32 @@
+use App\Events\CampaignApprovedEvent;
+use App\Models\User;
+use Illuminate\Support\Facades\Mail;
+
 <?php
 
-namespace App\Listeners;
+namespace App\Infrastructure\Event\Listeners;
 
-use App\Domain\Campaign\Event\CampaignApproved;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
+use App\Infrastructure\Event\CampaignApprovedEvent;
+use App\Infrastructure\Mail\CampaignApprovedMail;
+use App\Infrastructure\Persistence\Models\User;
+use Illuminate\Support\Facades\Mail;
 
 class NotifyCampaignCreatorOnApprovalListener
 {
     /**
-     * Create the event listener.
-     */
-    public function __construct()
-    {
-        //
-    }
-
-    /**
      * Handle the event.
+     *
+     * @param  CampaignApprovedEvent  $event
+     * @return void
      */
-    public function handle(CampaignApproved $event): void
+    public function handle(CampaignApprovedEvent $event)
     {
-        //
+        $campaign = $event->campaign;
+        $creator = $campaign->creatorId;
+
+        if ($creator instanceof User) {
+            // Send notification email to the campaign creator
+            Mail::to($creator->email)->send(new CampaignApprovedMail($campaign));
+        }
     }
 }

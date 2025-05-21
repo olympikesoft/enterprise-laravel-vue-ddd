@@ -6,7 +6,6 @@ use App\Infrastructure\Persistence\Models\Campaign;
 use App\Infrastructure\Persistence\Models\Donation;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-// This could also be a Query Handler (e.g., GetCampaignByIdQuery)
 class ViewCampaignDetailsHandler
 {
     /**

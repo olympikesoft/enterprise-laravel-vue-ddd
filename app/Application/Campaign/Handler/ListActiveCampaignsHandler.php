@@ -3,10 +3,9 @@
 namespace App\Application\Campaign\Handler;
 
 use App\Infrastructure\Persistence\Models\Campaign;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator; // For pagination
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
-// This could also be a Query Handler if you have a specific Query object
 class ListActiveCampaignsHandler
 {
     /**

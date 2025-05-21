@@ -1,7 +1,13 @@
 <?php
-
+// No additional code needed here for the $PLACEHOLDER$
 namespace App\Providers;
 
+use App\Domain\Campaign\Repository\CampaignRepositoryInterface;
+use App\Domain\Donation\Repository\DonationRepositoryInterface;
+use App\Domain\User\Repository\UserRepositoryInterface;
+use App\Infrastructure\Persistence\Eloquent\EloquentCampaignRepository;
+use App\Infrastructure\Persistence\Eloquent\EloquentDonationRepository;
+use App\Infrastructure\Persistence\Eloquent\EloquentUserRepository;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\ServiceProvider;
 
@@ -13,26 +19,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-       /* $this->app->bind(
-            \App\Domain\Campaign\Repository\CampaignRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\EloquentCampaignRepository::class
+       $this->app->bind(CampaignRepositoryInterface::class, EloquentCampaignRepository::class
         );
-        $this->app->bind(
-            \App\Domain\Donation\Repository\DonationRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\EloquentDonationRepository::class
+        $this->app->bind(DonationRepositoryInterface::class, EloquentDonationRepository::class
         );
-        $this->app->bind(
-            \App\Domain\Employee\Repository\EmployeeRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\EloquentEmployeeRepository::class
-        );
-        $this->app->bind(
+        /*$this->app->bind(
             \App\Application\Services\PaymentServiceInterface::class,
-            \App\Infrastructure\Payment\DummyPaymentService::class // Or StripePaymentService later
-        );
-        $this->app->bind(
+            \App\Infrastructure\Payment\DummyPaymentService::class
+        );*/
+        /*$this->app->bind(
             \App\Application\Services\NotificationServiceInterface::class,
             \App\Infrastructure\Notification\EmailNotificationService::class
         );*/
+        $this->app->bind(UserRepositoryInterface::class, EloquentUserRepository::class);
+
     }
 
     /**

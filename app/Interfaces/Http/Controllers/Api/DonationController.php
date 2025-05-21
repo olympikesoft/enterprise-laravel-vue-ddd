@@ -17,13 +17,15 @@ class DonationController extends Controller
     {
         $validated = $request->validated();
 
+
         $dto = new MakeDonationDTO(
             campaignId: (int) $validated['campaign_id'],
             amount: (float) $validated['amount'],
+            currency: $validated['currency'],
             userId: Auth::id(), // Can be null if user is not logged in
             donorName: $validated['donor_name'] ?? (Auth::check() ? Auth::user()->name : null),
             message: $validated['message'] ?? null,
-            paymentToken: $validated['payment_token']
+            paymentToken: $validated['payment_token'],
         );
 
         $command = new CreateDonationCommand($dto);

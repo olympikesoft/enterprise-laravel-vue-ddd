@@ -11,6 +11,6 @@ class MakeDonationDTO
         public readonly int $userId,
         public readonly ?string $donorName,
         public readonly ?string $message,
-        public readonly string $paymentToken
+        public readonly ?string $paymentToken
     ) {}
 }

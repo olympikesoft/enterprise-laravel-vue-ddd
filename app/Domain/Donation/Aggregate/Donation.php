@@ -146,8 +146,6 @@ class Donation // This is an Aggregate Root
         $this->failureReason = $reason;
         $this->transactionReference = null;
 
-        // You'd create and record DonationFailed event here
-        // $this->recordThat(new DonationFailed($this->id, $this->campaignId, $this->amount, $reason));
     }
 
     // Method for persistence layer to reconstruct the object
@@ -171,6 +169,20 @@ class Donation // This is an Aggregate Root
         $donation->failureReason = $failureReason;
         $donation->domainEvents = []; // Clear events from constructor
 
+        return $donation;
+    }
+
+    public static function reconstituteFromArray(array $data): self
+    {
+        $donation = new self(
+            $data['id'],
+            $data['campaignId'],
+            $data['amount'],
+            $data['donorId'] ?? null,
+            $data['donorName'] ?? null,
+            $data['message'] ?? null
+        );
+        // Set other properties as needed
         return $donation;
     }
 }

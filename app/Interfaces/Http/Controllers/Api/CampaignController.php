@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use Illuminate\Routing\Controller;
 use App\Http\Requests\StoreCampaignHttpRequest;
 use App\Http\Requests\UpdateCampaignHttpRequest;
 use App\Http\Resources\CampaignResource;
@@ -64,6 +64,7 @@ class CampaignController extends Controller
         }]));
     }
 
+    /*
     public function update(UpdateCampaignHttpRequest $request, int $id, UpdateCampaignHandler $handler): JsonResponse
     {
         $campaign = Campaign::findOrFail($id); // Fetch first for authorization check
@@ -87,7 +88,7 @@ class CampaignController extends Controller
         $updatedCampaign = $handler->handle($command);
 
         return response()->json(new CampaignResource($updatedCampaign));
-    }
+    }*/
 
     // public function destroy(int $id): JsonResponse
     // {

@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+      "target": "ESNext",
+      "useDefineForClassFields": true,
+      "module": "ESNext",
+      "moduleResolution": "Node",
+      "strict": true,
+      "jsx": "preserve",
+      "resolveJsonModule": true,
+      "isolatedModules": true,
+      "esModuleInterop": true,
+      "lib": ["ESNext", "DOM"],
+      "skipLibCheck": true,
+      "noEmit": true,
+      "baseUrl": ".",
+      "paths": {
+        "@/*": ["resources/js/*"]
+      },
+      "types": ["vite/client", "node"] // Include vite/client for import.meta.env
+    },
+    "include": [
+      "resources/js/**/*.ts",
+      "resources/js/**/*.d.ts",
+      "resources/js/**/*.tsx",
+      "resources/js/**/*.vue",
+      "vite.config.js" // Include vite config if it uses TS or needs type checking
+  ],
+    "references": [{ "path": "./tsconfig.node.json" }] // If you have a separate tsconfig for node scripts
+  }
