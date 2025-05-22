@@ -1,12 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Api\Admin;
+namespace App\Interfaces\Http\Controllers\Api\Admin;
 
+use App\Application\Campaign\Command\ResetUserPasswordCommand as CommandResetUserPasswordCommand;
 use Illuminate\Routing\Controller;
-use App\Http\Requests\UpdateUserHttpRequest;
-use App\Http\Requests\CreateUserHttpRequest;
-use App\Http\Resources\UserResource;
-use App\Http\Resources\UserCollection;
 use App\Application\User\Command\CreateUserCommand;
 use App\Application\User\Command\UpdateUserCommand;
 use App\Application\User\Command\DeleteUserCommand;
@@ -23,6 +20,10 @@ use App\Application\User\Handler\ListUsersHandler;
 use App\Application\User\Handler\ViewUserDetailsHandler;
 use App\Application\DTO\User\UpdateUserDTO;
 use App\Application\DTO\User\CreateUserDTO;
+use App\Interfaces\Http\Requests\Auth\RegisterRequest;
+use App\Interfaces\Http\Requests\Auth\UpdateUserRequest;
+use App\Interfaces\Http\Resources\UserCollection;
+use App\Interfaces\Http\Resources\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -58,7 +59,7 @@ class AdminUserController extends Controller
         return new UserResource($user);
     }
 
-    public function store(CreateUserHttpRequest $request, CreateUserHandler $handler): JsonResponse
+    public function store(RegisterRequest $request, CreateUserHandler $handler): JsonResponse
     {
         $validated = $request->validated();
 
@@ -76,7 +77,7 @@ class AdminUserController extends Controller
         return response()->json(new UserResource($user), 201);
     }
 
-    public function update(UpdateUserHttpRequest $request, int $id, UpdateUserHandler $handler): JsonResponse
+    public function update(UpdateUserRequest $request, int $id, UpdateUserHandler $handler): JsonResponse
     {
         $validated = $request->validated();
 
@@ -124,17 +125,5 @@ class AdminUserController extends Controller
         return response()->json(new UserResource($user));
     }
 
-    public function resetPassword(Request $request, int $id, ResetUserPasswordHandler $handler): JsonResponse
-    {
-        $request->validate(['password' => 'required|string|min:8|confirmed']);
 
-        $command = new ResetUserPasswordCommand(
-            userId: $id,
-            adminId: Auth::id(),
-            newPassword: Hash::make($request->input('password'))
-        );
-
-        $user = $handler->handle($command);
-        return response()->json(['message' => 'Password reset successfully']);
-    }
 }

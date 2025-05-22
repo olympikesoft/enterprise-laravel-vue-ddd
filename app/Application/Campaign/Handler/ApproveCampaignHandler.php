@@ -5,13 +5,14 @@ namespace App\Application\Campaign\Handler;
 use App\Application\Campaign\Command\ApproveCampaignCommand;
 use App\Infrastructure\Persistence\Models\Campaign;
 use App\Application\Services\NotificationServiceInterface; // Optional
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ApproveCampaignHandler
 {
-    public function __construct(
+   /* public function __construct(
         private ?NotificationServiceInterface $notificationService = null // Optional
-    ) {}
+    ) {}*/
 
     /**
      * @throws ModelNotFoundException
@@ -22,9 +23,7 @@ class ApproveCampaignHandler
         $campaign = Campaign::findOrFail($command->campaignId);
 
         if ($campaign->status === Campaign::STATUS_APPROVED) {
-            // Optionally, throw an exception or just return the campaign
-            // throw new \Exception("Campaign is already approved.");
-            return $campaign; // Idempotent
+            throw new \Exception("Campaign is already approved.");
         }
 
         if ($campaign->status !== Campaign::STATUS_PENDING) {
@@ -32,13 +31,11 @@ class ApproveCampaignHandler
         }
 
         $campaign->status = Campaign::STATUS_APPROVED;
-        // Optionally set an 'approved_at' timestamp if you have one
-        // $campaign->approved_at = now();
         $campaign->save();
 
-        if ($this->notificationService) {
-            // $this->notificationService->sendCampaignApprovedNotification($campaign);
-        }
+        //if ($this->notificationService) {
+           //  $this->notificationService->sendCampaignApprovedNotification($campaign, \user:);
+        //}
 
         return $campaign;
     }

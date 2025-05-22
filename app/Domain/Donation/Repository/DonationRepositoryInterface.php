@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Donation\Repository;
 
-use App\Domain\Campaign\ValueObject\CampaignId;
 use App\Domain\Donation\Aggregate\Donation;
 use App\Domain\Donation\ValueObject\DonationId;
 
@@ -36,8 +35,19 @@ interface DonationRepositoryInterface
     /**
      * Find all donations for a campaign.
      *
-     * @param CampaignId $campaignId
+     * @param int $campaignId
      * @return Donation[]
      */
-    public function findByCampaignId(CampaignId $campaignId): array;
+    public function findByCampaignId(int $campaignId): array;
+
+
+    public function hasCompletedDonationsForCampaign(int $campaignId): bool;
+
+    public function findByUserPaginated(
+        int $userId,
+        string $sortBy,
+        string $sortDirection,
+        int $perPage,
+        ?string $paymentStatus = null
+    ): \Illuminate\Contracts\Pagination\LengthAwarePaginator;
 }

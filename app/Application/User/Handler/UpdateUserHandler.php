@@ -54,21 +54,29 @@ class UpdateUserHandler
                 $dataToUpdate['email'] = $command->dto->email;
                 $changedFields['email'] = ['old' => $user->email, 'new' => $command->dto->email];
             }
-            if ($command->dto->role !== null && $user->role !== $command->dto->role) {
-                if ($user->id === $command->adminId && $command->dto->role !== 'admin') {
-                    throw new \Exception("Admin cannot change their own role from admin.");
+            if ($command->dto->role !== null) {
+                $isCurrentAdmin = $user->is_admin;
+                $willBeAdmin = $command->dto->role === 'admin';
+
+                if ($isCurrentAdmin !== $willBeAdmin) {
+                    if ($user->id === $command->adminId && !$willBeAdmin) {
+                        throw new \Exception("Admin cannot change their own role from admin.");
+                    }
+                    $dataToUpdate['is_admin'] = $willBeAdmin;
+                    $changedFields['is_admin'] = ['old' => $isCurrentAdmin, 'new' => $willBeAdmin];
                 }
-                $dataToUpdate['role'] = $command->dto->role;
-                $changedFields['role'] = ['old' => $user->role, 'new' => $command->dto->role];
             }
-            if ($command->dto->isActive !== null && $user->is_active !== $command->dto->isActive) {
-                $dataToUpdate['is_active'] = $command->dto->isActive;
-                $changedFields['is_active'] = ['old' => $user->is_active, 'new' => $command->dto->isActive];
-                if (!$command->dto->isActive && $user->is_active) {
-                    if ($user->banned_at) {
-                        $dataToUpdate['banned_at'] = null;
-                        $dataToUpdate['ban_reason'] = null;
-                        $changedFields['banned_at'] = ['old' => $user->banned_at, 'new' => null];
+            if ($command->dto->isActive !== null) {
+                if (isset($user->is_active) && $user->is_active !== $command->dto->isActive) {
+                    $dataToUpdate['is_active'] = $command->dto->isActive;
+                    $changedFields['is_active'] = ['old' => $user->is_active, 'new' => $command->dto->isActive];
+
+                    if (!$command->dto->isActive && isset($user->is_active) && $user->is_active) {
+                        if (isset($user->banned_at)) {
+                            $dataToUpdate['banned_at'] = null;
+                            $dataToUpdate['ban_reason'] = null;
+                            $changedFields['banned_at'] = ['old' => $user->banned_at, 'new' => null];
+                        }
                     }
                 }
             }

@@ -1,53 +1,36 @@
 <?php
 
-namespace App\Mail;
+namespace App\Infrastructure\Mail;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
+
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
-use Illuminate\Queue\SerializesModels;
 
 class DonationConfirmationMail extends Mailable
 {
-    use Queueable, SerializesModels;
+
+    public $donation;
 
     /**
      * Create a new message instance.
-     */
-    public function __construct()
-    {
-        //
-    }
-
-    /**
-     * Get the message envelope.
-     */
-    public function envelope(): Envelope
-    {
-        return new Envelope(
-            subject: 'Donation Confirmation Mail',
-        );
-    }
-
-    /**
-     * Get the message content definition.
-     */
-    public function content(): Content
-    {
-        return new Content(
-            markdown: 'emails.donations.confirmation',
-        );
-    }
-
-    /**
-     * Get the attachments for the message.
      *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     * @param $campaign
      */
-    public function attachments(): array
+    public function __construct($donation)
     {
-        return [];
+        $this->donation = $donation;
+    }
+
+    /**
+     * Build the message.
+     *
+     * @return $this
+     */
+    public function build()
+    {
+        return $this->subject('Donation Confirmation')
+                    ->view('emails.donation-confirmation')
+                    ->with([
+                        'donation' => $this->donation,
+                    ]);
     }
 }

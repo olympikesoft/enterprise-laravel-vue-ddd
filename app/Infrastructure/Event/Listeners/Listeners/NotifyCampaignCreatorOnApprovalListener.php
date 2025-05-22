@@ -1,7 +1,3 @@
-use App\Events\CampaignApprovedEvent;
-use App\Models\User;
-use Illuminate\Support\Facades\Mail;
-
 <?php
 
 namespace App\Infrastructure\Event\Listeners;
@@ -22,10 +18,9 @@ class NotifyCampaignCreatorOnApprovalListener
     public function handle(CampaignApprovedEvent $event)
     {
         $campaign = $event->campaign;
-        $creator = $campaign->creatorId;
+        $creator = $campaign->user;
 
         if ($creator instanceof User) {
-            // Send notification email to the campaign creator
             Mail::to($creator->email)->send(new CampaignApprovedMail($campaign));
         }
     }

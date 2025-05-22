@@ -1,58 +1,56 @@
 <?php
 
-namespace App\Http\Controllers\Api\Admin;
+namespace App\Interfaces\Http\Controllers\Api\Admin;
 
 use Illuminate\Routing\Controller;
-use App\Http\Requests\UpdateCampaignHttpRequest; // Can reuse for admin updates
-use App\Http\Resources\CampaignResource;
-use App\Http\Resources\CampaignCollection;
 use App\Application\Campaign\Command\ApproveCampaignCommand;
 use App\Application\Campaign\Handler\ApproveCampaignHandler;
 use App\Application\Campaign\Handler\RejectCampaignHandler;
 use App\Application\Campaign\Command\RejectCampaignCommand;
-use App\Application\Campaign\Command\UpdateCampaignCommand; // For admin updates
-use App\Application\Campaign\Handler\ListActiveCampaignsHandler;
-use App\Application\Campaign\Handler\UpdateCampaignHandler; // For admin updates
+use App\Application\Campaign\Command\UpdateCampaignCommand;
+use App\Application\Campaign\Handler\ListCampaignsHandler;
+use App\Application\Campaign\Handler\UpdateCampaignHandler;
 use App\Application\Campaign\Handler\ViewCampaignDetailsHandler;
-use App\Application\DTO\Campaign\UpdateCampaignDTO;         // For admin updates
-use App\Infrastructure\Persistence\Models\Campaign;
+use App\Application\Campaign\Query\ListCampaignsQuery;
+use App\Application\DTO\Campaign\UpdateCampaignDTO;
+use App\Interfaces\Http\Requests\UpdateCampaignHttpRequest;
+use App\Interfaces\Http\Resources\CampaignCollection;
+use App\Interfaces\Http\Resources\CampaignResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Auth; // To ensure admin
+use Illuminate\Support\Facades\Auth;
 
 class AdminCampaignController extends Controller
 {
     public function __construct()
     {
-        // Ensure user is admin for all methods in this controller
-        $this->middleware(['auth:sanctum', 'admin']); // Assuming an 'admin' middleware
+        $this->middleware(['auth:sanctum', 'admin']);
     }
 
-    public function index(Request $request, ListActiveCampaignsHandler $queryHandler): CampaignCollection
+    public function index(Request $request, ListCampaignsHandler $queryHandler): CampaignCollection
     {
-        $query = new ViewCampaignDetailsHandler(
+        $query = new ListCampaignsQuery(
             status: $request->query('status'),
-            userId: $request->query('user_id'),
             sortBy: $request->query('sort_by', 'created_at'),
             sortDirection: $request->query('sort_direction', 'desc'),
             perPage: $request->query('per_page', 15)
         );
 
-        $result = $queryHandler->handle($query->id ?? null );
+        $result = $queryHandler->handle($query);
         return new CampaignCollection($result);
     }
 
     public function show(int $id, ViewCampaignDetailsHandler $handler): CampaignResource
     {
-        $query = new ViewCampaignDetailsHandler($id);
+        $handler = new ViewCampaignDetailsHandler();
         $campaign = $handler->handle($id);
         return new CampaignResource($campaign);
     }
 
     public function approve(int $id, ApproveCampaignHandler $handler): JsonResponse
     {
-        $command = new ApproveCampaignCommand($id);
+        $command = new ApproveCampaignCommand($id, Auth::id());
         $campaign = $handler->handle($command);
         return response()->json(new CampaignResource($campaign));
     }
@@ -60,7 +58,7 @@ class AdminCampaignController extends Controller
     public function reject(Request $request, int $id, RejectCampaignHandler $handler): JsonResponse
     {
         $request->validate(['reason' => 'nullable|string|max:500']);
-        $command = new RejectCampaignCommand($id, $request->input('reason'), Auth::id());
+        $command = new RejectCampaignCommand((string)$id, $request->input('reason'), Auth::id());
         $campaign = $handler->handle($command);
         return response()->json(new CampaignResource($campaign));
     }

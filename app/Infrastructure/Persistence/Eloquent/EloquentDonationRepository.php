@@ -2,12 +2,15 @@
 
 namespace App\Infrastructure\Persistence\Eloquent;
 
-use App\Domain\Campaign\ValueObject\CampaignId;
 use App\Domain\Donation\Aggregate\Donation;
 use App\Domain\Donation\Repository\DonationRepositoryInterface;
 use App\Domain\Donation\ValueObject\DonationId;
+use App\Domain\Donation\ValueObject\DonationStatus;
+use App\Domain\Shared\ValueObject\Money;
 use App\Infrastructure\Persistence\Models\Donation as DonationModel;
+use DateTimeImmutable;
 use Illuminate\Support\Str;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class EloquentDonationRepository implements DonationRepositoryInterface
 {
@@ -69,13 +72,57 @@ class EloquentDonationRepository implements DonationRepositoryInterface
     /**
      * Find all donations for a campaign.
      *
-     * @param CampaignId $campaignId
+     * @param int $campaignId
      * @return Donation[]
      */
-    public function findByCampaignId(CampaignId $campaignId): array
+    public function findByCampaignId(int $campaignId): array
     {
-        $donations = $this->model->where('campaign_id', $campaignId->toString())->get();
+        $donations = $this->model->where('campaign_id', $campaignId)->get();
         return $this->mapCollectionToDomainEntities($donations);
+    }
+
+    /**
+     * Check if a user has completed donations for a campaign.
+     *
+     * @param int $campaignId
+     * @return bool
+     */
+    public function hasCompletedDonationsForCampaign(int $campaignId): bool
+    {
+        return $this->model->where('campaign_id', $campaignId)
+            ->where('status', DonationModel::PAYMENT_STATUS_COMPLETED)
+            ->exists();
+    }
+
+    /**
+     * Find donations by user with pagination.
+     *
+     * @param int $userId
+     * @param string $sortBy
+     * @param string $sortDirection
+     * @param int $perPage
+     * @param string|null $paymentStatus
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     */
+    public function findByUserPaginated(
+        int $userId,
+        string $sortBy = 'created_at',
+        string $sortDirection = 'desc',
+        int $perPage = 15,
+        ?string $paymentStatus = null
+    ): LengthAwarePaginator {
+        $query = $this->model->where('user_id', $userId);
+
+        // Apply payment status filter if provided
+        if ($paymentStatus !== null) {
+            $query->where('status', $paymentStatus);
+        }
+
+        // Apply sorting
+        $query->orderBy($sortBy, $sortDirection);
+
+        // Return paginated results
+        return $query->paginate($perPage);
     }
 
     /**
@@ -83,15 +130,28 @@ class EloquentDonationRepository implements DonationRepositoryInterface
      */
     private function mapToDomainEntity(DonationModel $model): Donation
     {
-        // Implementation would depend on your domain entity constructor
-        // This is a simplified example
-        return Donation::reconstituteFromArray([
-            'id' => DonationId::fromString($model->id),
-            'amount' => $model->amount,
-            'donorId' => $model->donor_id, // Assuming this is already a value object or will be converted
-            'campaignId' => CampaignId::fromString($model->campaign_id),
-            // Add other properties as needed
-        ]);
+        // Convert amount to Money value object (with USD currency code)
+        $amount = new Money((int)($model->amount * 100), 'USD'); // Convert to cents and provide currency
+
+        // Convert string status to DonationStatus value object
+        $status = match($model->status) {
+            DonationModel::PAYMENT_STATUS_COMPLETED => DonationStatus::succeeded(),
+            DonationModel::PAYMENT_STATUS_FAILED => DonationStatus::failed(),
+            default => DonationStatus::pending(),
+        };
+
+        // Map from persistence model to domain entity using reconstitute method
+        return Donation::reconstitute(
+            $model->id,
+            $model->campaign_id,
+            $model->user_id,
+            $amount,
+            $status,
+            $model->notes ?? null,
+            $model->created_at ? new DateTimeImmutable($model->created_at->format('Y-m-d H:i:s')) : new DateTimeImmutable(),
+            $model->transaction_id ?? null,
+            $model->payment_gateway_response ?? null
+        );
     }
 
     /**
@@ -109,14 +169,32 @@ class EloquentDonationRepository implements DonationRepositoryInterface
      */
     private function mapToModelData(Donation $donation): array
     {
-        // Implementation would depend on your domain entity getters
-        // This is a simplified example
+        // Extract values from value objects
+        $donationId = $donation->getId();
+        $idValue = $donationId;
+
+        $campaignId = $donation->getCampaignId();
+        $campaignIdValue = $campaignId;
+
+        $donorId = $donation->getDonorId();
+        $donorIdValue = $donorId;
+
+        $status = $donation->getStatus();
+        $statusValue = match(true) {
+            $status->equals(DonationStatus::succeeded()) => DonationModel::PAYMENT_STATUS_COMPLETED,
+            $status->equals(DonationStatus::failed()) => DonationModel::PAYMENT_STATUS_FAILED,
+            default => DonationModel::PAYMENT_STATUS_PENDING,
+        };
+
         return [
-            'id' => $donation->getId()->toString(),
-            'amount' => $donation->getAmount(),
-            'donor_id' => $donation->getDonorId()->toString(), // Assuming this returns a value object
-            'campaign_id' => $donation->getCampaignId()->toString(),
-            // Add other properties as needed
+            'id' => $idValue,
+            'campaign_id' => $campaignIdValue,
+            'user_id' => $donorIdValue,
+            'amount' => $donation->getAmount()->getAmountInCents() / 100,
+            'notes' => $donation->getMessage(),
+            'status' => $statusValue,
+            'transaction_id' => $donation->getTransactionReference(),
+            'payment_gateway_response' => $donation->getFailureReason(),
         ];
     }
 }

@@ -29,38 +29,30 @@ class CreateDonationHandler
 
         $campaign = Campaign::findOrFail($dto->campaignId);
 
-        if ($campaign->status !== Campaign::STATUS_APPROVED && $campaign->status !== Campaign::STATUS_ACTIVE) { // Assuming ACTIVE is a valid status for donations
+        if ($campaign->status !== Campaign::STATUS_ACTIVE && $campaign->status !== Campaign::STATUS_PENDING) {
             throw new Exception("Donations cannot be made to this campaign as it is not active or approved.");
         }
+
         if ($campaign->end_date < now()) {
             throw new Exception("This campaign has ended.");
         }
 
         $user = $dto->userId ? User::find($dto->userId) : null;
-        $donorName = $user ? $user->name : $dto->donorName;
 
-        if (!$donorName) {
-            throw new Exception("Donor name is required for anonymous donations.");
-        }
-
-        // Attempt payment processing
         $paymentResult = $this->paymentService->processPayment(
             amount: $dto->amount,
             currency: $dto->currency,
-            paymentToken: $dto->paymentToken,
             description: "Donation to campaign: {$campaign->title}",
             metadata: [
                 'campaign_id' => $campaign->id,
                 'user_id' => $dto->userId,
-                'donor_name' => $donorName,
             ]
         );
 
-        return DB::transaction(function () use ($dto, $campaign, $user, $donorName, $paymentResult) {
+        return DB::transaction(function () use ($dto, $campaign, $paymentResult) {
             $donation = Donation::create([
                 'campaign_id' => $campaign->id,
                 'user_id' => $dto->userId,
-                'donor_name' => $donorName,
                 'amount' => $dto->amount,
                 'message' => $dto->message,
                 'payment_status' => $paymentResult['success'] ? Donation::PAYMENT_STATUS_COMPLETED : Donation::PAYMENT_STATUS_FAILED,

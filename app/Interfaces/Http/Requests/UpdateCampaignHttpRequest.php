@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Interfaces\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Infrastructure\Persistence\Models\Campaign; // For status constants if needed

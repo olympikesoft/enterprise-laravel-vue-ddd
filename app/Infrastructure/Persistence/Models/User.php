@@ -7,8 +7,18 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes; // Optional, if users can be soft-deleted
+use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property string $name
+ * @property string $email
+ * @property string $password
+ * @property string $role
+ * @property bool $is_admin
+ * @property \Illuminate\Support\Carbon|null $banned_at
+ * @property string|null $ban_reason
+ * @property bool $is_active
+ */
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
@@ -16,19 +26,24 @@ class User extends Authenticatable
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $fillable = [
         'name',
         'email',
         'password',
-        'is_admin', // To distinguish admin users
+        'role',
+        'is_admin',
+        'banned_at',
+        'ban_reason',
+        'is_active',
+        'isActive',
     ];
 
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $hidden = [
         'password',
@@ -44,6 +59,8 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'is_admin' => 'boolean',
+        'banned_at' => 'datetime',
+        'is_active' => 'boolean',
     ];
 
     public function campaigns(): HasMany
@@ -51,8 +68,34 @@ class User extends Authenticatable
         return $this->hasMany(Campaign::class);
     }
 
+    public function approvedCampaigns(): HasMany
+    {
+        return $this->hasMany(Campaign::class, 'approved_by');
+    }
+
     public function donations(): HasMany
     {
         return $this->hasMany(Donation::class);
+    }
+
+     public const ROLE_USER = 'user';
+     public const ROLE_ADMIN = 'admin';
+
+     /**
+      * Check if user is an admin
+      */
+     public function isAdmin(): bool
+     {
+         return $this->role === self::ROLE_ADMIN;
+     }
+
+    /**
+     * Create a new factory instance for the model.
+     *
+     * @return \Illuminate\Database\Eloquent\Factories\Factory
+     */
+    protected static function newFactory()
+    {
+        return \Database\Factories\UserFactory::new();
     }
 }

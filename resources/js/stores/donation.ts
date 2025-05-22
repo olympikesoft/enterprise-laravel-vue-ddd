@@ -16,7 +16,6 @@ export interface CreatedDonation {
     amount: number;
     status: string;
     message?: string;
-    donor_name?: string; // From backend if available
     donated_at: string; // From backend
 }
 

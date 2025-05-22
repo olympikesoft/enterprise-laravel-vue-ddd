@@ -34,7 +34,6 @@ mkdir -p app/Domain/Campaign/Repository
 mkdir -p app/Domain/Campaign/Service 
 
 touch app/Domain/Campaign/Aggregate/Campaign.php
-touch app/Domain/Campaign/ValueObject/CampaignId.php
 touch app/Domain/Campaign/ValueObject/CampaignStatus.php
 touch app/Domain/Campaign/Event/CampaignCreated.php
 touch app/Domain/Campaign/Event/CampaignApproved.php
@@ -62,3 +61,20 @@ mkdir -p app/Domain/Employee/Repository
 touch app/Domain/Employee/Aggregate/Employee.php
 touch app/Domain/Employee/ValueObject/EmployeeId.php
 touch app/Domain/Employee/Repository/EmployeeRepositoryInterface.php
+
+## run migrations again
+php artisan migrate:fresh
+
+
+
+## Analyzes PHPSTAN 
+vendor/bin/phpstan analyse
+
+## Unit Tests
+php artisan test
+
+
+# CLEAR CACHE
+php artisan route:clear
+php artisan config:clear
+php artisan cache:clear

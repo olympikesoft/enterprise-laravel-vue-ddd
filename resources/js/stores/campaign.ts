@@ -180,8 +180,7 @@ export const useCampaignStore = defineStore('campaign', {
             }
         },
         async rejectCampaign(campaignId: string, reason?: string) {
-            // ... (existing implementation)
-            const updateLocalCampaignStatus = (id: string, newStatus: string, rejectionReason?: string) => {
+            const updateLocalCampaignStatus = (id: string, newStatus: string) => {
                 let campaign = this.userCampaigns.find(c => c.id === id);
                 if (campaign) {
                     campaign.status = newStatus;

@@ -14,13 +14,23 @@ return new class extends Migration
         Schema::create('campaigns', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('approved_by')->nullable()->constrained('users')->onDelete('set null');
             $table->string('title');
             $table->text('description');
             $table->decimal('goal_amount', 15, 2);
             $table->decimal('current_amount', 15, 2)->default(0);
             $table->dateTime('start_date')->nullable();
             $table->dateTime('end_date')->nullable();
-            $table->enum('status', ['pending_approval', 'active', 'completed', 'cancelled', 'rejected'])->default('pending_approval');
+            $table->dateTime('approved_at')->nullable();
+            $table->enum('status', [
+                'pending_approval',
+                'approved',
+                'active',
+                'completed',
+                'failed',
+                'cancelled',
+                'rejected',
+            ])->default('pending_approval');
             $table->timestamps();
             $table->softDeletes();
         });

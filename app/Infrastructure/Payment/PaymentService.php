@@ -4,8 +4,6 @@ namespace App\Infrastructure\Payment;
 
 use Exception;
 
-namespace App\Infrastructure\Payment;
-
 
 class PaymentService
 {

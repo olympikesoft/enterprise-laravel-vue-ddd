@@ -9,5 +9,5 @@ use DateTimeImmutable;
 interface DomainEvent
 {
     public function occurredOn(): DateTimeImmutable;
-    public function getAggregateId(): string; // Or a specific ID type
+    public function getAggregateId(): int;
 }

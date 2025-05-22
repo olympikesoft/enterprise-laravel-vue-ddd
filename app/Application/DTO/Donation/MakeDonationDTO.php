@@ -9,8 +9,6 @@ class MakeDonationDTO
         public readonly float $amount,
         public readonly string $currency,
         public readonly int $userId,
-        public readonly ?string $donorName,
         public readonly ?string $message,
-        public readonly ?string $paymentToken
     ) {}
 }

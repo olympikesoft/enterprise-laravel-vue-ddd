@@ -32,27 +32,17 @@ class RejectCampaignHandler
             throw new AuthorizationException('You are not authorized to reject campaigns.');
         }
 
-        // Campaign can only be rejected if currently pending
         if ($campaign->status !== Campaign::STATUS_PENDING) {
             throw new Exception("Only pending campaigns can be rejected. Current status: {$campaign->status}");
         }
 
-        // Update campaign status and rejection details
         $campaign->status = Campaign::STATUS_REJECTED;
-        $campaign->rejection_reason = $command->reason; // Store the reason for rejection
-        $campaign->rejected_at = Carbon::now();
-        $campaign->rejected_by_id = $rejectingUser->id;
-
-        // If a campaign was previously approved, clear those fields
-        $campaign->approved_at = null;
-        $campaign->approved_by_id = null;
 
         $campaign->save();
 
-        // Optional: Send notification about rejection
-        // if ($this->notificationService) {
-        //     $this->notificationService->sendCampaignRejectedNotification($campaign, $rejectingUser);
-        // }
+        if ($this->notificationService) {
+             $this->notificationService->sendCampaignRejectedNotification($campaign, $rejectingUser);
+         }
 
         return $campaign;
     }

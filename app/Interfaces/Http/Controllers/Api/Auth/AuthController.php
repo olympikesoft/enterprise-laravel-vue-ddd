@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Api\Auth; // Standard location for API Auth
+namespace App\Interfaces\Http\Controllers\Api\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Http\Resources\UserResource;
-use App\Models\User; // Assuming User model is in App\Models
+use Illuminate\Routing\Controller;
+use App\Infrastructure\Persistence\Models\User;
+use App\Interfaces\Http\Resources\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate.Support\Facades\Hash;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Http\JsonResponse;
 

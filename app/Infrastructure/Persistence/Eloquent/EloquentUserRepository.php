@@ -1,6 +1,3 @@
-use App\Domain\Repositories\UserRepositoryInterface;
-use App\Models\User;
-
 <?php
 
 namespace App\Infrastructure\Persistence\Eloquent;

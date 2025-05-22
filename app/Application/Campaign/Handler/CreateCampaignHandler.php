@@ -18,7 +18,6 @@ class CreateCampaignHandler
     {
         $dto = $command->dto;
 
-        // Ensure the user exists (though this might be handled by auth middleware earlier)
         $user = User::findOrFail($dto->userId);
 
         return DB::transaction(function () use ($dto, $user) {
@@ -30,10 +29,9 @@ class CreateCampaignHandler
                 'current_amount' => 0, // Initial amount
                 'start_date' => $dto->startDate,
                 'end_date' => $dto->endDate,
-                'status' => Campaign::STATUS_PENDING, // Default status, assuming approval process
+                'status' => Campaign::STATUS_PENDING,
             ]);
 
-            // Optional: Notify admin for approval or user for creation
             if ($this->notificationService) {
                 // $this->notificationService->sendCampaignCreatedConfirmation($campaign, $user);
                 // $adminEmails = User::where('is_admin', true)->pluck('email')->toArray();

@@ -6,23 +6,19 @@ namespace App\Domain\Campaign\Aggregate;
 
 use App\Domain\Campaign\Event\CampaignApproved;
 use App\Domain\Campaign\Event\CampaignCreated;
-use App\Domain\Campaign\Event\CampaignFundsAdded; // You'd create this event
-use App\Domain\Campaign\Event\CampaignRejected;   // You'd create this event
-use App\Domain\Campaign\ValueObject\CampaignId;
 use App\Domain\Campaign\ValueObject\CampaignStatus;
 use App\Domain\Donation\ValueObject\DonationId;
-use App\Domain\Employee\ValueObject\EmployeeId;
 use App\Domain\Shared\Event\RaisesDomainEvents;
 use App\Domain\Shared\ValueObject\Money;
 use DateTimeImmutable;
-use DomainException; // Standard PHP exception
+use DomainException;
 
-class Campaign // This is an Aggregate Root
+class Campaign
 {
     use RaisesDomainEvents;
 
-    private CampaignId $id;
-    private EmployeeId $creatorId;
+    private int $id;
+    private int $creatorId;
     private string $title;
     private string $description;
     private Money $goalAmount;
@@ -31,13 +27,12 @@ class Campaign // This is an Aggregate Root
     private DateTimeImmutable $endDate;
     private CampaignStatus $status;
     private ?DateTimeImmutable $approvedAt = null;
-    private ?EmployeeId $approvedBy = null;
-    private ?string $rejectionReason = null;
+    private ?int $approvedBy = null;
 
     // Private constructor to enforce creation via static factory method
     private function __construct(
-        CampaignId $id,
-        EmployeeId $creatorId,
+        int $id,
+        int $creatorId,
         string $title,
         string $description,
         Money $goalAmount,
@@ -73,8 +68,8 @@ class Campaign // This is an Aggregate Root
     }
 
     public static function create(
-        CampaignId $id,
-        EmployeeId $creatorId,
+        int $id,
+        int $creatorId,
         string $title,
         string $description,
         Money $goalAmount,
@@ -84,12 +79,12 @@ class Campaign // This is an Aggregate Root
         return new self($id, $creatorId, $title, $description, $goalAmount, $startDate, $endDate);
     }
 
-    public function getId(): CampaignId
+    public function getId(): int
     {
         return $this->id;
     }
 
-    public function getCreatorId(): EmployeeId
+    public function getCreatorId(): int
     {
         return $this->creatorId;
     }
@@ -134,17 +129,13 @@ class Campaign // This is an Aggregate Root
         return $this->approvedAt;
     }
 
-    public function getApprovedBy(): ?EmployeeId
+    public function getApprovedBy(): ?int
     {
         return $this->approvedBy;
     }
 
-    public function getRejectionReason(): ?string
-    {
-        return $this->rejectionReason;
-    }
 
-    public function approve(EmployeeId $approvedByAdminId): void
+    public function approve(int $approvedByAdminId): void
     {
         if (!$this->status->equals(CampaignStatus::pending())) {
             throw new DomainException("Campaign cannot be approved. Current status: {$this->status}");
@@ -152,24 +143,17 @@ class Campaign // This is an Aggregate Root
         $this->status = CampaignStatus::approved();
         $this->approvedAt = new DateTimeImmutable();
         $this->approvedBy = $approvedByAdminId;
-        $this->rejectionReason = null;
 
         $this->recordThat(new CampaignApproved($this->id, $approvedByAdminId));
         $this->updateStatusBasedOnDate(); // Check if it should become active
     }
 
-    public function reject(EmployeeId $rejectedByAdminId, ?string $reason = null): void
+    public function reject(int $rejectedByAdminId): void
     {
         if (!$this->status->equals(CampaignStatus::pending())) {
             throw new DomainException("Campaign cannot be rejected. Current status: {$this->status}");
         }
         $this->status = CampaignStatus::rejected();
-        $this->rejectionReason = $reason;
-        $this->approvedAt = null;
-        $this->approvedBy = null;
-
-        // You'd create and record CampaignRejected event here
-        // $this->recordThat(new CampaignRejected($this->id, $rejectedByAdminId, $reason));
     }
 
     public function addFunds(Money $amount, DonationId $donationId): void
@@ -231,24 +215,20 @@ class Campaign // This is an Aggregate Root
 
         if ($this->status->equals(CampaignStatus::approved()) && $now >= $this->startDate && $now <= $this->endDate) {
             $this->status = CampaignStatus::active();
-            // Record CampaignActivated event
         }
 
         if ($this->status->isOneOf([CampaignStatus::approved(), CampaignStatus::active()])) {
             if ($this->currentAmount->isGreaterThanOrEqual($this->goalAmount)) {
                 $this->status = CampaignStatus::completed();
-                // Record CampaignGoalReached or CampaignCompleted event
             } elseif ($now > $this->endDate) {
-                $this->status = CampaignStatus::completed(); // Or a different status like 'Expired'
-                // Record CampaignEnded or CampaignCompleted event
+                $this->status = CampaignStatus::completed();
             }
         }
     }
 
-    // Method for persistence layer to reconstruct the object
     public static function reconstitute(
-        CampaignId $id,
-        EmployeeId $creatorId,
+        int $id,
+        int $creatorId,
         string $title,
         string $description,
         Money $goalAmount,
@@ -257,8 +237,7 @@ class Campaign // This is an Aggregate Root
         DateTimeImmutable $endDate,
         CampaignStatus $status,
         ?DateTimeImmutable $approvedAt,
-        ?EmployeeId $approvedBy,
-        ?string $rejectionReason
+        ?int $approvedBy,
     ): self {
         $campaign = new self(
             $id,
@@ -269,13 +248,11 @@ class Campaign // This is an Aggregate Root
             $startDate,
             $endDate
         );
-        // Override initial state with persisted state
         $campaign->currentAmount = $currentAmount;
         $campaign->status = $status;
         $campaign->approvedAt = $approvedAt;
         $campaign->approvedBy = $approvedBy;
-        $campaign->rejectionReason = $rejectionReason;
-        $campaign->domainEvents = []; // Clear events from constructor
+        $campaign->domainEvents = [];
 
         return $campaign;
     }

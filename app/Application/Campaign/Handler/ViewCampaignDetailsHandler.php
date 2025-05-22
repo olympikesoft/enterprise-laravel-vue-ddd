@@ -16,7 +16,7 @@ class ViewCampaignDetailsHandler
      * @return Campaign
      * @throws ModelNotFoundException
      */
-    public function handle(int $campaignId): Campaign
+    public static function handle(int $campaignId): Campaign
     {
         // Eager load relations for efficiency
         return Campaign::with(['user', 'donations' => function ($query) {

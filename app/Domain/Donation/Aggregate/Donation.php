@@ -4,53 +4,46 @@ declare(strict_types=1);
 
 namespace App\Domain\Donation\Aggregate;
 
-use App\Domain\Campaign\ValueObject\CampaignId;
-use App\Domain\Donation\Event\DonationFailed; // You'd create this
 use App\Domain\Donation\Event\DonationInitiated;
 use App\Domain\Donation\Event\DonationSucceeded;
-use App\Domain\Donation\ValueObject\DonationId;
 use App\Domain\Donation\ValueObject\DonationStatus;
-use App\Domain\Employee\ValueObject\EmployeeId;
 use App\Domain\Shared\Event\RaisesDomainEvents;
 use App\Domain\Shared\ValueObject\Money;
 use DateTimeImmutable;
 use DomainException;
 
-class Donation // This is an Aggregate Root
+class Donation
 {
     use RaisesDomainEvents;
 
-    private DonationId $id;
-    private CampaignId $campaignId;
-    private ?EmployeeId $donorId; // Nullable for anonymous
-    private ?string $donorName; // For anonymous or if user provides a different display name
+    private int $id;
+    private int $campaignId;
+    private int $donorId;
     private Money $amount;
     private DonationStatus $status;
     private ?string $message;
     private DateTimeImmutable $createdAt;
-    private ?string $transactionReference = null; // From payment gateway
+    private ?string $transactionReference = null;
     private ?string $failureReason = null;
 
     private function __construct(
-        DonationId $id,
-        CampaignId $campaignId,
+        int $id,
+        int $campaignId,
         Money $amount,
-        ?EmployeeId $donorId,
-        ?string $donorName,
+        int $donorId,
         ?string $message
     ) {
         if ($amount->getAmountInCents() <= 0) {
             throw new DomainException("Donation amount must be positive.");
         }
-        if ($donorId === null && empty($donorName)) {
-            throw new DomainException("Donor name is required for anonymous donations.");
+        if ($donorId === null) {
+            throw new DomainException("Donor is required for donations.");
         }
 
         $this->id = $id;
         $this->campaignId = $campaignId;
         $this->amount = $amount;
         $this->donorId = $donorId;
-        $this->donorName = $donorName ?: ($donorId ? 'Registered User' : 'Anonymous'); // Default if not provided
         $this->message = $message;
         $this->status = DonationStatus::pending();
         $this->createdAt = new DateTimeImmutable();
@@ -60,39 +53,32 @@ class Donation // This is an Aggregate Root
             $this->campaignId,
             $this->amount,
             $this->donorId,
-            $this->donorName
         ));
     }
 
     public static function make(
-        DonationId $id,
-        CampaignId $campaignId,
+        int $id,
+        int $campaignId,
         Money $amount,
-        ?EmployeeId $donorId,
-        ?string $donorName,
+        ?int $donorId,
         ?string $message
     ): self {
-        return new self($id, $campaignId, $amount, $donorId, $donorName, $message);
+        return new self($id, $campaignId, $amount, $donorId, $message);
     }
 
-    public function getId(): DonationId
+    public function getId(): int
     {
         return $this->id;
     }
 
-    public function getCampaignId(): CampaignId
+    public function getCampaignId(): int
     {
         return $this->campaignId;
     }
 
-    public function getDonorId(): ?EmployeeId
+    public function getDonorId(): ?int
     {
         return $this->donorId;
-    }
-
-    public function getDonorName(): ?string
-    {
-        return $this->donorName;
     }
 
     public function getAmount(): Money
@@ -150,10 +136,9 @@ class Donation // This is an Aggregate Root
 
     // Method for persistence layer to reconstruct the object
     public static function reconstitute(
-        DonationId $id,
-        CampaignId $campaignId,
-        ?EmployeeId $donorId,
-        ?string $donorName,
+        int $id,
+        int $campaignId,
+        int $donorId,
         Money $amount,
         DonationStatus $status,
         ?string $message,
@@ -161,8 +146,7 @@ class Donation // This is an Aggregate Root
         ?string $transactionReference,
         ?string $failureReason
     ): self {
-        $donation = new self($id, $campaignId, $amount, $donorId, $donorName, $message);
-        // Override initial state
+        $donation = new self($id, $campaignId, $amount, $donorId, $message);
         $donation->status = $status;
         $donation->createdAt = $createdAt; // Keep original creation time
         $donation->transactionReference = $transactionReference;
@@ -178,11 +162,9 @@ class Donation // This is an Aggregate Root
             $data['id'],
             $data['campaignId'],
             $data['amount'],
-            $data['donorId'] ?? null,
-            $data['donorName'] ?? null,
+            $data['donorId'],
             $data['message'] ?? null
         );
-        // Set other properties as needed
         return $donation;
     }
 }

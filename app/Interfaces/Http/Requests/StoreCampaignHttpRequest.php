@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Interfaces\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Infrastructure\Persistence\Models\Campaign; // For status constants if needed
@@ -13,7 +13,7 @@ class StoreCampaignHttpRequest extends FormRequest
     public function authorize(): bool
     {
         // Anyone authenticated can attempt to create a campaign
-        return auth()->check();
+        return \Illuminate\Support\Facades\Auth::check();
     }
 
     /**

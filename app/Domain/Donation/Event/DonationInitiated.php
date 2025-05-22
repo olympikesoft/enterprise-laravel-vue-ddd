@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Donation\Event;
 
-use App\Domain\Campaign\ValueObject\CampaignId;
-use App\Domain\Donation\ValueObject\DonationId;
-use App\Domain\Employee\ValueObject\EmployeeId;
+use App\Domain\Employee\ValueObject\int;
 use App\Domain\Shared\Event\DomainEvent;
 use App\Domain\Shared\ValueObject\Money;
 use DateTimeImmutable;
@@ -16,11 +14,10 @@ final class DonationInitiated implements DomainEvent
     private readonly DateTimeImmutable $occurredOn;
 
     public function __construct(
-        public readonly DonationId $donationId,
-        public readonly CampaignId $campaignId,
+        public readonly int $donationId,
+        public readonly int $campaignId,
         public readonly Money $amount,
-        public readonly ?EmployeeId $donorId, // Nullable for anonymous donations
-        public readonly ?string $donorName // For anonymous donations
+        public readonly ?int $donorId, // Nullable for anonymous donations
     ) {
         $this->occurredOn = new DateTimeImmutable();
     }
@@ -30,8 +27,8 @@ final class DonationInitiated implements DomainEvent
         return $this->occurredOn;
     }
 
-    public function getAggregateId(): string
+    public function getAggregateId(): int
     {
-        return $this->donationId->toString();
+        return $this->donationId;
     }
 }

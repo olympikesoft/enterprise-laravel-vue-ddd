@@ -1,12 +1,9 @@
-use App\Infrastructure\Event\Events\DonationMadeEvent;
-use Illuminate\Support\Facades\Mail;
-
 <?php
 
 namespace App\Infrastructure\Event\Listeners\Listeners;
 
 use App\Infrastructure\Event\DonationMadeEvent;
-use App\Mail\DonationConfirmationMail;
+use App\Infrastructure\Mail\DonationConfirmationMail;
 use Illuminate\Support\Facades\Mail;
 
 class SendDonationConfirmationListener
@@ -21,7 +18,10 @@ class SendDonationConfirmationListener
     {
         $donation = $event->donation;
 
+        /** @var \App\Infrastructure\Persistence\Models\User $user */
+        $user = $donation->user;
+
         // Send confirmation email
-        Mail::to($donation->donor_email)->send(new DonationConfirmationMail($donation));
+        Mail::to($user->email)->send(new DonationConfirmationMail($donation));
     }
 }

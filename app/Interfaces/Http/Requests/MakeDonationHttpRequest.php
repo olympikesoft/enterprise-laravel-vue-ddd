@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Interfaces\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -11,7 +11,7 @@ class MakeDonationHttpRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->check();
+        return \Illuminate\Support\Facades\Auth::check();
     }
 
     /**
@@ -24,8 +24,8 @@ class MakeDonationHttpRequest extends FormRequest
         return [
             'campaign_id' => 'required|integer|exists:campaigns,id',
             'amount' => 'required|numeric|min:0.50', // Minimum donation amount
-            'donor_name' => 'required_without:user_id|nullable|string|max:255', // Required if user is not authenticated/provided
             'message' => 'nullable|string|max:1000',
+            'currency' => 'required|string|in:USD,EUR,GBP', // Add other currencies as needed
             'payment_token' => 'required|string', // Token from payment gateway (e.g., Stripe.js)
         ];
     }
@@ -33,7 +33,6 @@ class MakeDonationHttpRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'donor_name.required_without' => 'Your name is required for anonymous donations.',
             'campaign_id.exists' => 'The selected campaign does not exist.',
         ];
     }

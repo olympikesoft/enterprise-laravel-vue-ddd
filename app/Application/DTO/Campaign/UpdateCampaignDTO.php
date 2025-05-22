@@ -13,6 +13,7 @@ class UpdateCampaignDTO
         public readonly ?float $goalAmount = null,
         public readonly ?Carbon $startDate = null,
         public readonly ?Carbon $endDate = null,
-        public readonly ?string $status = null
+        public readonly ?string $status = null,
+        public readonly ?int $actingUserId = null,
     ) {}
 }
