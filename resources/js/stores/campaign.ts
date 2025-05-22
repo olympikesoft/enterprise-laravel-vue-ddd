@@ -1,7 +1,30 @@
 // resources/js/stores/campaignStore.ts
 import { defineStore } from 'pinia';
-import apiClient from '@/services/api';
-import type { Campaign } from '@/views/campaigns/CampaignDetailView.vue'; // Assuming Campaign interface is here
+import apiClient from '../services/api';
+
+// Define Campaign interface locally or import from a types file
+export interface Campaign {
+  id: string;
+  title: string;
+  description: string;
+  goal_amount: number;
+  current_amount?: number;
+  donations_count?: number;
+  start_date: string;
+  end_date: string;
+  status: string;
+  user_id: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    is_admin: boolean;
+};
+  created_at: string;
+  updated_at: string;
+  rejection_reason?: string;
+  // Add other fields as needed
+}
 
 // Define CampaignFormData interface for create/update
 export interface CampaignFormData {
@@ -12,7 +35,6 @@ export interface CampaignFormData {
   end_date: string;
   // Add other fields if your form collects them
 }
-
 
 export const useCampaignStore = defineStore('campaign', {
     state: () => ({
@@ -34,8 +56,8 @@ export const useCampaignStore = defineStore('campaign', {
         createCampaignLoading: false,
         createCampaignError: null as string | null,
 
-        updateCampaignLoading: false, // NEW
-        updateCampaignError: null as string | null, // NEW
+        updateCampaignLoading: false,
+        updateCampaignError: null as string | null,
 
         actionLoading: false,
         actionError: null as string | null,
@@ -51,7 +73,8 @@ export const useCampaignStore = defineStore('campaign', {
                 this.userCampaigns.unshift(response.data.data);
                 return response.data.data;
             } catch (error: any) {
-                this.createCampaignError = error.response?.data?.message || error.response?.data?.errors ? JSON.stringify(error.response.data.errors) : 'Failed to create campaign.';
+                this.createCampaignError = error.response?.data?.message ||
+                    (error.response?.data?.errors ? JSON.stringify(error.response.data.errors) : 'Failed to create campaign.');
                 console.error("Create campaign error:", error.response?.data);
                 throw error;
             } finally {
@@ -59,7 +82,7 @@ export const useCampaignStore = defineStore('campaign', {
             }
         },
 
-        // NEW: Fetch a single campaign (e.g., for editing)
+        // Fetch a single campaign (e.g., for editing)
         async fetchCampaignById(campaignId: string) {
             this.fetchCampaignLoading = true;
             this.currentCampaignForEdit = null;
@@ -69,7 +92,7 @@ export const useCampaignStore = defineStore('campaign', {
                 this.currentCampaignForEdit = response.data.data;
                 return response.data.data;
             } catch (error: any) {
-                 this.createCampaignError = 'Failed to fetch campaign details for editing.';
+                this.createCampaignError = 'Failed to fetch campaign details for editing.';
                 console.error("Fetch campaign by ID error:", error.response?.data);
                 throw error;
             } finally {
@@ -77,7 +100,7 @@ export const useCampaignStore = defineStore('campaign', {
             }
         },
 
-        // NEW: Update an existing campaign
+        // Update an existing campaign
         async updateCampaign(campaignId: string, campaignData: CampaignFormData) {
             this.updateCampaignLoading = true;
             this.updateCampaignError = null;
@@ -90,13 +113,14 @@ export const useCampaignStore = defineStore('campaign', {
                 }
                 // Update in publicCampaigns list if present
                 const publicIndex = this.publicCampaigns.findIndex(c => c.id === campaignId);
-                 if (publicIndex !== -1) {
+                if (publicIndex !== -1) {
                     this.publicCampaigns[publicIndex] = response.data.data;
                 }
                 this.currentCampaignForEdit = response.data.data; // Update the edited campaign state
                 return response.data.data;
             } catch (error: any) {
-                this.updateCampaignError = error.response?.data?.message || error.response?.data?.errors ? JSON.stringify(error.response.data.errors) : 'Failed to update campaign.';
+                this.updateCampaignError = error.response?.data?.message ||
+                    (error.response?.data?.errors ? JSON.stringify(error.response.data.errors) : 'Failed to update campaign.');
                 console.error("Update campaign error:", error.response?.data);
                 throw error;
             } finally {
@@ -119,7 +143,7 @@ export const useCampaignStore = defineStore('campaign', {
             }
         },
 
-        // MODIFIED: Fetch public campaigns with optional search
+        // Fetch public campaigns with optional search
         async fetchPublicCampaigns(params: { search?: string } = {}) {
             this.publicCampaignsLoading = true;
             this.publicCampaignsError = null;
@@ -135,8 +159,7 @@ export const useCampaignStore = defineStore('campaign', {
             }
         },
 
-
-        // --- Admin Actions (existing, ensure they use Campaign interface) ---
+        // --- Admin Actions ---
         async fetchPendingCampaigns() {
             this.adminCampaignsLoading = true;
             this.adminCampaignsError = null;
@@ -151,16 +174,16 @@ export const useCampaignStore = defineStore('campaign', {
                 this.adminCampaignsLoading = false;
             }
         },
+
         async approveCampaign(campaignId: string) {
-            // ... (existing implementation)
-            // On success, also update status in userCampaigns and publicCampaigns if the campaign exists there
             const updateLocalCampaignStatus = (id: string, newStatus: string) => {
                 let campaign = this.userCampaigns.find(c => c.id === id);
                 if (campaign) campaign.status = newStatus;
+
                 campaign = this.publicCampaigns.find(c => c.id === id);
                 if (campaign) campaign.status = newStatus;
-                // also for currentCampaignForEdit if it's the one being approved/rejected
-                if(this.currentCampaignForEdit && this.currentCampaignForEdit.id === id) {
+
+                if (this.currentCampaignForEdit && this.currentCampaignForEdit.id === id) {
                     this.currentCampaignForEdit.status = newStatus;
                 }
             };
@@ -170,7 +193,7 @@ export const useCampaignStore = defineStore('campaign', {
             try {
                 await apiClient.post(`/admin/campaigns/${campaignId}/approve`);
                 this.pendingAdminCampaigns = this.pendingAdminCampaigns.filter(c => c.id !== campaignId);
-                updateLocalCampaignStatus(campaignId, 'APPROVED'); // Or whatever status backend sets
+                updateLocalCampaignStatus(campaignId, 'APPROVED');
             } catch (error: any) {
                 this.actionError = error.response?.data?.message || 'Failed to approve campaign.';
                 console.error("Approve campaign error:", error.response?.data);
@@ -179,26 +202,27 @@ export const useCampaignStore = defineStore('campaign', {
                 this.actionLoading = false;
             }
         },
+
         async rejectCampaign(campaignId: string, reason?: string) {
-            const updateLocalCampaignStatus = (id: string, newStatus: string) => {
+            const updateLocalCampaignStatus = (id: string, newStatus: string, rejectionReason?: string) => {
                 let campaign = this.userCampaigns.find(c => c.id === id);
                 if (campaign) {
                     campaign.status = newStatus;
-                    // @ts-ignore because rejection_reason might not be on Campaign interface yet
                     if (rejectionReason) campaign.rejection_reason = rejectionReason;
                 }
+
                 campaign = this.publicCampaigns.find(c => c.id === id);
-                 if (campaign) {
+                if (campaign) {
                     campaign.status = newStatus;
-                    // @ts-ignore
                     if (rejectionReason) campaign.rejection_reason = rejectionReason;
                 }
-                if(this.currentCampaignForEdit && this.currentCampaignForEdit.id === id) {
+
+                if (this.currentCampaignForEdit && this.currentCampaignForEdit.id === id) {
                     this.currentCampaignForEdit.status = newStatus;
-                    // @ts-ignore
-                     if (rejectionReason) this.currentCampaignForEdit.rejection_reason = rejectionReason;
+                    if (rejectionReason) this.currentCampaignForEdit.rejection_reason = rejectionReason;
                 }
             };
+
             this.actionLoading = true;
             this.actionError = null;
             try {
@@ -213,5 +237,15 @@ export const useCampaignStore = defineStore('campaign', {
                 this.actionLoading = false;
             }
         },
+
+        // Helper method to clear errors
+        clearErrors() {
+            this.createCampaignError = null;
+            this.updateCampaignError = null;
+            this.userCampaignsError = null;
+            this.publicCampaignsError = null;
+            this.adminCampaignsError = null;
+            this.actionError = null;
+        }
     },
 });

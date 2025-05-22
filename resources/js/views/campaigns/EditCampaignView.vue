@@ -46,7 +46,7 @@
 
   <script setup lang="ts">
   import { reactive, onMounted, ref, watch } from 'vue';
-  import { useCampaignStore, type CampaignFormData } from '@/stores/campaignStore';
+  import { useCampaignStore, type CampaignFormData } from '../../stores/campaign';
   import { useRoute, useRouter } from 'vue-router';
 
   const campaignStore = useCampaignStore();

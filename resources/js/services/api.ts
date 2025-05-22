@@ -1,5 +1,12 @@
 import axios, { type AxiosInstance } from 'axios';
 
+interface ImportMeta {
+    readonly env: {
+        readonly VITE_API_BASE_URL?: string;
+        readonly VITE_APP_URL?: string;
+    };
+}
+
 const apiClient: AxiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL || '/api', // Use env variable, fallback to /api
     withCredentials: true, // Crucial for Laravel Sanctum cookie-based authentication
@@ -10,9 +17,6 @@ const apiClient: AxiosInstance = axios.create({
 });
 
 /**
- * Fetches the CSRF cookie from Laravel Sanctum.
- * This should be called once before making state-changing requests if not already handled.
- * Typically called on application initialization.
  */
 export const getCsrfCookie = async (): Promise<void> => {
     try {

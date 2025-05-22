@@ -10,7 +10,6 @@ use App\Application\Campaign\Handler\CreateCampaignHandler;
 use App\Application\Campaign\Command\UpdateCampaignCommand;
 use App\Application\Campaign\Handler\DeleteCampaignHandler;
 use App\Application\Campaign\Handler\UpdateCampaignHandler;
-use App\Application\Campaign\Handler\ListActiveCampaignsHandler;
 use App\Application\Campaign\Handler\ListCampaignsHandler;
 use App\Application\Campaign\Handler\ListUserCampaignsHandler;
 use App\Application\Campaign\Handler\ViewCampaignDetailsHandler;

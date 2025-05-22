@@ -20,6 +20,9 @@ use App\Application\User\Handler\ListUsersHandler;
 use App\Application\User\Handler\ViewUserDetailsHandler;
 use App\Application\DTO\User\UpdateUserDTO;
 use App\Application\DTO\User\CreateUserDTO;
+use App\Infrastructure\Persistence\Models\Campaign;
+use App\Infrastructure\Persistence\Models\Donation;
+use App\Infrastructure\Persistence\Models\User;
 use App\Interfaces\Http\Requests\Auth\RegisterRequest;
 use App\Interfaces\Http\Requests\Auth\UpdateUserRequest;
 use App\Interfaces\Http\Resources\UserCollection;
@@ -76,6 +79,30 @@ class AdminUserController extends Controller
 
         return response()->json(new UserResource($user), 201);
     }
+
+    /**
+     * Get dashboard statistics for the admin panel.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function stats(Request $request): JsonResponse
+    {
+        $totalUsers = User::count();
+        $totalCampaigns = Campaign::count();
+        $pendingCampaigns = Campaign::where('status', 'PENDING')->count();
+        $totalDonations = Donation::sum('amount');
+
+        return response()->json([
+            'data' => [
+                'totalUsers' => $totalUsers,
+                'totalCampaigns' => $totalCampaigns,
+                'pendingCampaigns' => $pendingCampaigns,
+                'totalDonations' => (float) $totalDonations, // Cast to float for consistency
+            ]
+        ]);
+    }
+
 
     public function update(UpdateUserRequest $request, int $id, UpdateUserHandler $handler): JsonResponse
     {
