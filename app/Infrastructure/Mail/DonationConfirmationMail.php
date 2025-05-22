@@ -1,36 +1,56 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Mail;
 
-
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Content;
+use Illuminate\Mail\Mailables\Envelope;
 
 class DonationConfirmationMail extends Mailable
 {
-
-    public $donation;
-
     /**
      * Create a new message instance.
      *
-     * @param $campaign
+     * @param mixed $donation
      */
-    public function __construct($donation)
-    {
-        $this->donation = $donation;
+    public function __construct(
+        public readonly mixed $donation
+    ) {
+        //
     }
 
     /**
-     * Build the message.
-     *
-     * @return $this
+     * Get the message envelope.
      */
-    public function build()
+    public function envelope(): Envelope
     {
-        return $this->subject('Donation Confirmation')
-                    ->view('emails.donation-confirmation')
-                    ->with([
-                        'donation' => $this->donation,
-                    ]);
+        return new Envelope(
+            subject: 'Donation Confirmation',
+        );
+    }
+
+    /**
+     * Get the message content definition.
+     */
+    public function content(): Content
+    {
+        return new Content(
+            view: 'emails.donation-confirmation',
+            with: [
+                'donation' => $this->donation,
+            ],
+        );
+    }
+
+    /**
+     * Get the attachments for the message.
+     *
+     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     */
+    public function attachments(): array
+    {
+        return [];
     }
 }

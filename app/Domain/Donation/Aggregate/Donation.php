@@ -36,9 +36,6 @@ class Donation
         if ($amount->getAmountInCents() <= 0) {
             throw new DomainException("Donation amount must be positive.");
         }
-        if ($donorId === null) {
-            throw new DomainException("Donor is required for donations.");
-        }
 
         $this->id = $id;
         $this->campaignId = $campaignId;

@@ -149,15 +149,12 @@ class EloquentCampaignRepository implements CampaignRepositoryInterface
             ? new DateTimeImmutable($model->end_date->format('Y-m-d H:i:s'))
             : null;
 
-        // Create CampaignStatus value object from string
         $campaignStatus = new CampaignStatus($model->status);
 
-        // Handle approved_at timestamp
         $approvedAt = $model->approved_at
             ? new DateTimeImmutable($model->approved_at->format('Y-m-d H:i:s'))
             : null;
 
-        // Assuming approved_by is an integer field in the model
         $approvedBy = $model->approved_by ?? null;
 
         return CampaignAggregate::reconstitute(
@@ -166,12 +163,12 @@ class EloquentCampaignRepository implements CampaignRepositoryInterface
             $model->title,
             $model->description,
             $goalAmount,
-            $currentAmount, // Added missing currentAmount parameter
+            $currentAmount,
             $startDate,
             $endDate,
             $campaignStatus,
-            $approvedAt, // Fixed: Now passing DateTimeImmutable|null for approved_at
-            $approvedBy // Fixed: Now passing int|null for approved_by
+            $approvedAt,
+            $approvedBy
         );
     }
 
@@ -200,6 +197,8 @@ class EloquentCampaignRepository implements CampaignRepositoryInterface
             'current_amount' => $campaign->getCurrentAmount(),
             'start_date' => $campaign->getStartDate(),
             'end_date' => $campaign->getEndDate(),
+            'approved_at' => $campaign->getApprovedAt(),
+            'approved_by' => $campaign->getApprovedBy(),
         ];
     }
 }
