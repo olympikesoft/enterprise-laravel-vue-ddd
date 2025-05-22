@@ -26,7 +26,7 @@ class DonationController extends Controller
         $dto = new MakeDonationDTO(
             campaignId: (int) $validated['campaign_id'],
             amount: (float) $validated['amount'],
-            currency: $validated['currency'],
+            currency: $validated['currency'] ?? 'USD', // Default to USD if not provided
             userId: Auth::id(),
             message: $validated['message'] ?? null,
         );

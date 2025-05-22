@@ -14,4 +14,5 @@ interface NotificationServiceInterface
     public function sendCampaignRejectedNotification(Campaign $campaign, string $reason): void;
     public function sendCampaignGoalReachedNotification(Campaign $campaign): void;
     public function sendNewDonationToCampaignOwnerNotification(Donation $donation, Campaign $campaign): void;
+    public function sendDonationReceiptNotification(Donation $donation, User $user): void;
 }

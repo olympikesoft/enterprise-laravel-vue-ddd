@@ -125,6 +125,8 @@
               <v-divider />
 
               <!-- Donation Form -->
+              {{ isOwner }}
+
               <v-card-text v-if="canDonate">
                 <div class="text-h6 mb-4">Make a Donation</div>
 
@@ -255,7 +257,11 @@
 
   const canDonate = computed(() => {
     return campaign.value &&
-           campaign.value.status === 'APPROVED' &&
+          (campaign.value.status !== 'pending' &&
+           campaign.value.status !== 'completed' &&
+           campaign.value.status !== 'rejected' &&
+           campaign.value.status !== 'cancelled')
+           &&
            daysRemaining.value !== null &&
            daysRemaining.value > 0 &&
            authStore.isAuthenticated &&

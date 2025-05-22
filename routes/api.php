@@ -9,22 +9,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 
-// --- Authentication Routes ---
 Route::post('/register', [AuthController::class, 'register'])->name('api.register');
 Route::post('/login', [AuthController::class, 'login'])->name('api.login');
 
 
-// --- Authenticated User Routes (require Sanctum authentication) ---
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('api.logout');
-    Route::get('/user', [AuthController::class, 'user'])->name('api.user'); // Using the method from AuthController
+    Route::get('/user', [AuthController::class, 'user'])->name('api.user');
 
-    // Campaign Management by Authenticated User
     Route::post('/campaigns', [CampaignController::class, 'store'])->name('api.campaigns.store');
     Route::put('/campaigns/{campaign}', [CampaignController::class, 'update'])->name('api.campaigns.update');
     Route::get('/my-campaigns', [CampaignController::class, 'myCampaigns'])->name('api.campaigns.my');
 
-    // Donation Management by Authenticated User
     Route::post('/donations', [DonationController::class, 'store'])->name('api.donations.store');
     Route::get('/my-donations', [DonationController::class, 'myDonations'])->name('api.donations.my');
 });

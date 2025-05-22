@@ -25,8 +25,8 @@ class MakeDonationHttpRequest extends FormRequest
             'campaign_id' => 'required|integer|exists:campaigns,id',
             'amount' => 'required|numeric|min:0.50', // Minimum donation amount
             'message' => 'nullable|string|max:1000',
-            'currency' => 'required|string|in:USD,EUR,GBP', // Add other currencies as needed
-            'payment_token' => 'required|string', // Token from payment gateway (e.g., Stripe.js)
+            'currency' => 'nullable|string|in:USD,EUR,GBP', // Add other currencies as needed
+            'payment_token' => 'nullable|string', // Token from payment gateway (e.g., Stripe.js)
         ];
     }
 

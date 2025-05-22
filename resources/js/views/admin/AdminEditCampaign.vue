@@ -119,7 +119,7 @@
                 <p class="font-weight-medium">{{ formatDate(campaign.updated_at) }}</p>
 
                 <v-textarea
-                  v-if="editableCampaign.status === 'REJECTED'"
+                  v-if="editableCampaign.status === 'rejected'"
                   v-model="editableCampaign.rejection_reason"
                   label="Rejection Reason"
                   variant="outlined"
@@ -163,7 +163,6 @@
   import { ref, onMounted, reactive, watch } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import { useAdminStore } from '../../stores/admin';
-  import apiClient from '../../services/api';
 
   interface UserStub {
     id: number;
@@ -192,7 +191,6 @@
   const editableCampaign = reactive<Partial<Campaign>>({}); // Form data
   const loading = ref(true);
   const submitting = ref(false);
-  const categoriesLoading = ref(false);
 
   const editCampaignForm = ref<any>(null); // For Vuetify form validation
 
@@ -203,11 +201,11 @@
   });
 
   const campaignStatuses = [
-    { text: 'Pending Approval', value: 'PENDING' },
-    { text: 'Approved (Active)', value: 'APPROVED' },
-    { text: 'Rejected', value: 'REJECTED' },
-    { text: 'Draft', value: 'DRAFT' },
-    { text: 'Completed', value: 'COMPLETED' },
+    { text: 'Pending Approval', value: 'pending' },
+    { text: 'Approved (Active)', value: 'approved' },
+    { text: 'Rejected', value: 'rejected' },
+    { text: 'Cancelled', value: 'cancelled' },
+    { text: 'Completed', value: 'completed' },
   ];
 
   const rules = {

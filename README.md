@@ -71,6 +71,7 @@ php artisan migrate:fresh
 vendor/bin/phpstan analyse
 
 ## Unit Tests
+
 php artisan test
 
 
@@ -78,3 +79,14 @@ php artisan test
 php artisan route:clear
 php artisan config:clear
 php artisan cache:clear
+
+
+# Process the emails queue specifically
+php artisan queue:work --queue=emails
+
+# Or process multiple queues with priority
+php artisan queue:work --queue=emails
+
+# RUN FRONT END
+npm run i
+npm run dev

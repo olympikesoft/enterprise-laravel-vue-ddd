@@ -72,6 +72,12 @@ return [
             'after_commit' => false,
         ],
 
+        'queues' => [
+            'default' => 'default',
+            'emails' => 'emails',
+            'high' => 'high',
+        ],
+
     ],
 
     /*

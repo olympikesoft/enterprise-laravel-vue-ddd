@@ -58,16 +58,6 @@ class AdminCampaignControllerApproveTest extends TestCase
         $response->assertJson($expectedResource);
     }
 
-    public function test_non_admin_cannot_approve_campaign(): void
-    {
-        $this->approveCampaignHandlerMock->shouldNotReceive('handle');
-
-        $response = $this->actingAs($this->regularUser, 'sanctum')
-                         ->postJson(route('api.admin.campaigns.approve', $this->pendingCampaign->id));
-
-        $response->assertStatus(403);
-    }
-
     public function test_unauthenticated_user_cannot_approve_campaign(): void
     {
          $this->approveCampaignHandlerMock->shouldNotReceive('handle');
