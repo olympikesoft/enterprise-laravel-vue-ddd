@@ -713,7 +713,7 @@
   const toggleUserRole = async (user: User) => {
     togglingRoleUserId.value = user.id;
     try {
-      const newRole = user.role === 'admin' ? 'employee' : 'admin';
+      const newRole = user.role === 'admin' ? '1' : '0';
       // API endpoint expects role: newRole
       await apiClient.put(`/admin/users/${user.id}`, { role: newRole });
 
